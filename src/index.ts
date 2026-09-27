@@ -183,8 +183,11 @@ function extractSessionID(properties: Record<string, unknown>): string | null {
   if (typeof properties.sessionID === "string") return properties.sessionID
   const info = properties.info
   if (info && typeof info === "object") {
-    const id = (info as Record<string, unknown>).id
-    if (typeof id === "string") return id
+    const record = info as Record<string, unknown>
+    if (typeof record.sessionID === "string") return record.sessionID
+    if (typeof record.id === "string" && String(properties.type ?? "").startsWith("session.")) {
+      return record.id
+    }
   }
   const part = properties.part
   if (part && typeof part === "object") {
@@ -216,6 +219,8 @@ function isOwnProvenanceEvent(
   const normalized = candidate.replaceAll("\\", "/")
   const repo = repoRoot.replaceAll("\\", "/")
   const marker = provenancePath.replaceAll("\\", "/")
+  if (normalized.includes(`/${marker}/`)) return true
+  if (normalized.startsWith(`${marker}/`)) return true
   return normalized.startsWith(repo) && normalized.includes(`/${marker}/`)
 }
 
