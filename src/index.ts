@@ -103,7 +103,7 @@ export const OpenCodeVFS: Plugin = async (
       }
       const type = raw.type ?? "unknown"
       const properties = raw.properties ?? {}
-      const sessionID = extractSessionID(properties)
+      const sessionID = extractSessionID(type, properties)
       if (!sessionID) return
 
       if (isOwnProvenanceEvent(type, properties, config.storage.repo, config.storage.path)) {
@@ -179,15 +179,13 @@ function getBuffer(
   return buffer
 }
 
-function extractSessionID(properties: Record<string, unknown>): string | null {
+function extractSessionID(type: string, properties: Record<string, unknown>): string | null {
   if (typeof properties.sessionID === "string") return properties.sessionID
   const info = properties.info
   if (info && typeof info === "object") {
     const record = info as Record<string, unknown>
     if (typeof record.sessionID === "string") return record.sessionID
-    if (typeof record.id === "string" && String(properties.type ?? "").startsWith("session.")) {
-      return record.id
-    }
+    if (typeof record.id === "string" && type.startsWith("session.")) return record.id
   }
   const part = properties.part
   if (part && typeof part === "object") {
